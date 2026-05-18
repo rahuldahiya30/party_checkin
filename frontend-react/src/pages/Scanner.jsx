@@ -72,9 +72,10 @@ export default function Scanner() {
   const [torch,   setTorch]   = useState(false);
   const [camErr,  setCamErr]  = useState('');
 
-  const scannerRef    = useRef(null);
-  const processingRef = useRef(false);
-  const lastTicketRef = useRef(null);
+  const scannerRef       = useRef(null);
+  const processingRef    = useRef(false);
+  const lastTicketRef    = useRef(null);
+  const resumeTimeoutRef = useRef(null);
 
   // Always-fresh callback via ref
   const onScanRef = useRef(null);
@@ -83,7 +84,7 @@ export default function Scanner() {
     if (ticketId === lastTicketRef.current) return;
 
     processingRef.current = true;
-    scannerRef.current?.pause(true);
+    scannerRef.current?.pause(false); // keep video stream alive — no re-permission needed
 
     try {
       const data = await api.scanTicket(ticketId);
@@ -104,10 +105,11 @@ export default function Scanner() {
       playError();
     }
 
-    setTimeout(() => {
+    resumeTimeoutRef.current = setTimeout(() => {
       setResult(null);
       processingRef.current = false;
       scannerRef.current?.resume();
+      resumeTimeoutRef.current = null;
     }, 3000);
   };
 
@@ -170,6 +172,14 @@ export default function Scanner() {
       setTorch(next);
       await scannerRef.current?.applyVideoConstraints({ advanced: [{ torch: next }] });
     } catch { setTorch(false); }
+  };
+
+  const resumeNow = () => {
+    if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+    resumeTimeoutRef.current = null;
+    setResult(null);
+    processingRef.current = false;
+    scannerRef.current?.resume();
   };
 
   const resultKey = result ? (result.success ? 'success' : result.error) : null;
@@ -378,19 +388,20 @@ export default function Scanner() {
               {cfg.sub(result)}
             </motion.div>
 
-            {/* Animated dismiss dots */}
-            <div className="flex gap-2 mt-8">
-              {[0, 1, 2].map(i => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0.2, scale: 0.8 }}
-                  animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.2, 0.8] }}
-                  transition={{ duration: 1, delay: i * 1, repeat: 0 }}
-                  className="w-2 h-2 rounded-full bg-white/70"
-                />
-              ))}
-            </div>
-            <p className="text-white/40 text-xs mt-3">Resuming in 3s</p>
+            <motion.button
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={resumeNow}
+              className="mt-8 bg-white/20 hover:bg-white/30 active:bg-white/40 text-white
+                         font-bold text-base px-10 py-3.5 rounded-2xl border border-white/30
+                         transition-colors"
+            >
+              Scan Next →
+            </motion.button>
+            <p className="text-white/40 text-xs mt-3">Auto-resuming in 3s</p>
           </motion.div>
         )}
       </AnimatePresence>
