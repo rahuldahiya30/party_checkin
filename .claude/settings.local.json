@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($path = \"C:\\\\Users\\\\admin\\\\Downloads\\\\Testing\\\\frontend\"; if \\(Test-Path $path\\) { Remove-Item -Recurse -Force $path; Write-Output \"Deleted $path\" } else { Write-Output \"Directory not found: $path\" })",
+      "Bash(node -e ' *)"
+    ]
+  }
+}

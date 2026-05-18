@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── html5-qrcode overrides ── */
+#camera-feed video {
+  width:  100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+#camera-feed > div > div {
+  border:     none !important;
+  box-shadow: none !important;
+}
+#camera-feed img { display: none !important; }
+
+/* ── Scan line animation (scanner page) ── */
+@keyframes scanLine {
+  0%   { top: 3px; }
+  50%  { top: 225px; }
+  100% { top: 3px; }
+}
+.scan-line-anim {
+  animation: scanLine 2s ease-in-out infinite;
+}
+
+/* ── Full-height utility ── */
+.h-dvh { height: 100dvh; }
+
+/* ── Gradient headline ── */
+.gradient-text {
+  background: linear-gradient(130deg, #6d28d9 0%, #4f46e5 55%, #4338ca 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Background dot grid (home page) ── */
+.dot-grid {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
