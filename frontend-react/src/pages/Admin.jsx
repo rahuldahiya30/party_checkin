@@ -347,7 +347,7 @@ export default function Admin() {
                   <input
                     ref={phoneRef}
                     type="tel"
-                    placeholder="+91 98765 43210"
+                    placeholder="+1 419 (743) 6723"
                     autoComplete="off"
                     className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm
                                focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100
