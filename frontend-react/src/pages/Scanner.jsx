@@ -115,24 +115,42 @@ export default function Scanner() {
   useEffect(() => {
     if (phase !== 'active') return;
 
-    const scanner = new Html5Qrcode('camera-feed');
-    scannerRef.current = scanner;
+    let cancelled = false;
+    let cleanup = () => {};
 
-    scanner
-      .start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 240, height: 240 }, aspectRatio: 1.7778 },
-        (id) => onScanRef.current(id),
-        () => {}
-      )
-      .then(() => fetchCounter())
-      .catch(err => setCamErr('Camera error: ' + (err?.message || err)));
+    const tryInit = () => {
+      if (cancelled) return;
+      if (!document.getElementById('camera-feed')) {
+        requestAnimationFrame(tryInit);
+        return;
+      }
 
-    const interval = setInterval(fetchCounter, 30000);
+      const scanner = new Html5Qrcode('camera-feed');
+      scannerRef.current = scanner;
+      const interval = setInterval(fetchCounter, 30000);
+
+      scanner
+        .start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: { width: 240, height: 240 }, aspectRatio: 1.7778 },
+          (id) => onScanRef.current(id),
+          () => {}
+        )
+        .then(() => fetchCounter())
+        .catch(err => setCamErr('Camera error: ' + (err?.message || err)));
+
+      cleanup = () => {
+        clearInterval(interval);
+        scanner.stop().catch(() => {});
+        scannerRef.current = null;
+      };
+    };
+
+    requestAnimationFrame(tryInit);
+
     return () => {
-      clearInterval(interval);
-      scanner.stop().catch(() => {});
-      scannerRef.current = null;
+      cancelled = true;
+      cleanup();
     };
   }, [phase]);
 
